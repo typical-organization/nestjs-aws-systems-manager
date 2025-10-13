@@ -1,0 +1,5 @@
+echo "🔍 Running ESLint..."
+npm run lint
+
+echo "✨ Running tests with coverage..."
+npm run test:cov
