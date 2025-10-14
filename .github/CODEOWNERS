@@ -1,0 +1,24 @@
+# Code Owners for @nestjs-aws/systems-manager
+# This file defines individuals or teams responsible for code in this repository.
+# Code owners are automatically requested for review when someone opens a pull request
+# that modifies code that they own.
+
+# Default owners for everything in the repo
+* @typical-organization/maintainer-team
+
+# Source code
+/src/ @typical-organization/maintainer-team
+
+# Tests
+/src/**/*.spec.ts @typical-organization/maintainer-team
+
+# Configuration files
+*.json @typical-organization/maintainer-team
+*.js @typical-organization/maintainer-team
+*.ts @typical-organization/maintainer-team
+
+# Documentation
+*.md @typical-organization/maintainer-team
+
+# GitHub workflows
+/.github/ @typical-organization/maintainer-team

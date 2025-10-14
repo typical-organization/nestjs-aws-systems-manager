@@ -1,0 +1,145 @@
+name: Node.js EOL Check
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly on Monday at 9 AM UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  check-node-eol:
+    name: Check Node.js End-of-Life Status
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Check Node.js EOL Status
+        id: eol-check
+        run: |
+          CURRENT_VERSION=$(cat .nvmrc)
+          CURRENT_DATE=$(date +%Y-%m-%d)
+          
+          echo "Current Node.js version: $CURRENT_VERSION"
+          echo "Current date: $CURRENT_DATE"
+          
+          # Fetch Node.js release schedule from official API
+          echo "📥 Fetching Node.js release schedule..."
+          curl -s https://nodejs.org/dist/index.json > node-releases.json
+          
+          # Node.js LTS Schedule with EOL dates (fallback if API fails)
+          declare -A NODE_EOL=(
+            ["18"]="2025-04-30"
+            ["20"]="2026-04-30"
+            ["22"]="2027-04-30"
+            ["24"]="2028-04-30"
+            ["26"]="2030-04-30"
+          )
+          
+          EOL_DATE="${NODE_EOL[$CURRENT_VERSION]}"
+          
+          if [ -z "$EOL_DATE" ]; then
+            echo "⚠️ Warning: Node.js version $CURRENT_VERSION not found in EOL schedule"
+            echo "status=unknown" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Calculate days until EOL
+          DAYS_UNTIL_EOL=$(( ($(date -d "$EOL_DATE" +%s) - $(date -d "$CURRENT_DATE" +%s)) / 86400 ))
+          
+          echo "EOL Date: $EOL_DATE"
+          echo "Days until EOL: $DAYS_UNTIL_EOL"
+          echo "days_until_eol=$DAYS_UNTIL_EOL" >> $GITHUB_OUTPUT
+          echo "eol_date=$EOL_DATE" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          if [ $DAYS_UNTIL_EOL -lt 0 ]; then
+            echo "❌ Node.js $CURRENT_VERSION is END-OF-LIFE!"
+            echo "status=eol" >> $GITHUB_OUTPUT
+            exit 1
+          elif [ $DAYS_UNTIL_EOL -lt 180 ]; then
+            echo "⚠️ Node.js $CURRENT_VERSION will reach EOL in $DAYS_UNTIL_EOL days"
+            echo "status=warning" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Node.js $CURRENT_VERSION is actively supported ($DAYS_UNTIL_EOL days until EOL)"
+            echo "status=supported" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Issue if EOL Soon
+        if: steps.eol-check.outputs.status == 'warning' || steps.eol-check.outputs.status == 'eol'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.eol-check.outputs.status }}';
+            const daysUntilEol = '${{ steps.eol-check.outputs.days_until_eol }}';
+            const eolDate = '${{ steps.eol-check.outputs.eol_date }}';
+            const currentVersion = require('fs').readFileSync('.nvmrc', 'utf8').trim();
+            
+            const title = status === 'eol' 
+              ? `🚨 Node.js ${currentVersion} is End-of-Life!`
+              : `⚠️ Node.js ${currentVersion} approaching End-of-Life`;
+            
+            const body = `
+            ## Node.js Version Status Alert
+            
+            **Current Version:** ${currentVersion}
+            **Status:** ${status === 'eol' ? '❌ End-of-Life' : '⚠️ Warning'}
+            **EOL Date:** ${eolDate}
+            **Days Until EOL:** ${daysUntilEol}
+            
+            ### Action Required
+            
+            ${status === 'eol' 
+              ? '**This Node.js version is no longer supported and should be upgraded immediately.**'
+              : `**This Node.js version will reach end-of-life in ${daysUntilEol} days. Plan an upgrade soon.**`
+            }
+            
+            ### Recommended Actions
+            
+            1. **Update \`.nvmrc\`** to the latest LTS version
+            2. **Update \`.github/workflows/pull-request.yml\`** matrix versions
+            3. **Test compatibility** with the new version
+            4. **Update \`package.json\` engines field**
+            5. **Update documentation** if needed
+            
+            ### Node.js LTS Schedule
+            
+            - Node.js 20: LTS until April 2026
+            - Node.js 22: LTS until April 2027
+            - Node.js 24: LTS until April 2028
+            - Node.js 26: LTS until April 2030
+            
+            Reference: [Node.js Release Schedule](https://nodejs.org/en/about/previous-releases)
+            
+            ---
+            
+            *This issue was automatically created by the Node.js EOL Check workflow.*
+            `;
+            
+            // Check if issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'node-eol-warning'
+            });
+            
+            const existingIssue = issues.data.find(issue => issue.title.includes(`Node.js ${currentVersion}`));
+            
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['node-eol-warning', 'priority-high', 'maintenance']
+              });
+              console.log('✅ Issue created successfully');
+            } else {
+              console.log('ℹ️ Issue already exists, skipping creation');
+            }
