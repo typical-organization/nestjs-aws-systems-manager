@@ -1,14 +1,6 @@
-# @nestjs-aws/systems-manager
+# @nestjs-aws/systems-manager [![CI](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/pull-request.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/pull-request.yml) [![NPM Publish](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/main.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/main.yml) [![Security Scan](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/codeql-analysis.yml)
 
 A powerful NestJS module for seamless integration with AWS Systems Manager Parameter Store and AWS Secrets Manager.
-
-[![NPM Publish](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/main.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/main.yml)
-[![PR Build CI](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/pull-request.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/pull-request.yml)
-[![CodeQL](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/codeql-analysis.yml)
-[![npm version](https://img.shields.io/npm/v/@nestjs-aws/systems-manager)](https://www.npmjs.com/package/@nestjs-aws/systems-manager)
-[![Node.js](https://img.shields.io/node/v/@nestjs-aws/systems-manager)](https://nodejs.org/)
-[![npm downloads](https://img.shields.io/npm/dm/@nestjs-aws/systems-manager)](https://www.npmjs.com/package/@nestjs-aws/systems-manager)
-[![License](https://img.shields.io/github/license/typical-organization/nestjs-aws-systems-manager)](https://github.com/typical-organization/nestjs-aws-systems-manager/blob/main/LICENSE.md)
 
 ## Table of Contents
 
@@ -32,6 +24,10 @@ A powerful NestJS module for seamless integration with AWS Systems Manager Param
 - 🌲 **Hierarchical Keys** - Optional preservation of parameter path hierarchy
 - ⚡ **Fast Access** - In-memory caching for lightning-fast runtime access
 - 🛡️ **Type Safe** - Full TypeScript support with comprehensive type definitions
+- [![NPM](https://img.shields.io/npm/v/@nestjs-aws/systems-manager)](https://www.npmjs.com/package/@nestjs-aws/systems-manager)
+- [![Node.js](https://img.shields.io/node/v/@nestjs-aws/systems-manager)](https://nodejs.org/)
+- [![License](https://img.shields.io/github/license/typical-organization/nestjs-aws-systems-manager)](https://github.com/typical-organization/nestjs-aws-systems-manager/blob/main/LICENSE.md)
+- [![Downloads](https://img.shields.io/npm/dm/@nestjs-aws/systems-manager)](https://www.npmjs.com/package/@nestjs-aws/systems-manager)
 
 ## Installation
 
