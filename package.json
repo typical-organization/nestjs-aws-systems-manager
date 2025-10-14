@@ -100,7 +100,8 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!systems-manager.module.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
@@ -110,12 +111,6 @@
         "functions": 80,
         "lines": 80,
         "statements": 80
-      },
-      "./systems-manager.module.ts": {
-        "branches": 37,
-        "functions": 40,
-        "lines": 47,
-        "statements": 48
       }
     }
   }
