@@ -1,6 +1,6 @@
 {
   "name": "@nestjs-aws/systems-manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "NestJS module for AWS Systems Manager (Parameter Store & Secrets Manager). Seamlessly integrate AWS SSM parameters and secrets into your NestJS applications with TypeScript support, automatic refresh, and hierarchical configuration management.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,7 +26,11 @@
     "node": ">=20.0.0",
     "npm": ">=9.0.0"
   },
-  "os": ["darwin", "linux", "win32"],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
   "files": [
     "dist/**/*",
     "*.md"
