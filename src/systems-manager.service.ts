@@ -132,11 +132,22 @@ export class SystemsManagerService {
     const basePath = this.config.awsParamStorePath;
     const separator = this.config.pathSeparator || '.';
 
-    // Remove base path and leading/trailing slashes
-    const relativePath = fullPath
-      .replace(basePath, '')
-      .replace(/^\/+/, '')
-      .replace(/\/+$/, '');
+    // Remove base path and leading/trailing slashes using string operations
+    let relativePath = fullPath.replace(basePath, '');
+    
+    // Remove leading slashes
+    let start = 0;
+    while (start < relativePath.length && relativePath[start] === '/') {
+      start++;
+    }
+    
+    // Remove trailing slashes
+    let end = relativePath.length;
+    while (end > start && relativePath[end - 1] === '/') {
+      end--;
+    }
+    
+    relativePath = relativePath.slice(start, end);
 
     // Convert slashes to separator
     return relativePath.split('/').filter(Boolean).join(separator);
