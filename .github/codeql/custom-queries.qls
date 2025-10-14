@@ -1,0 +1,7 @@
+- description: Custom queries for AWS SDK security
+- queries: 
+    - include:
+        kind: problem
+        tags:
+          - aws
+          - security
