@@ -133,21 +133,24 @@ export class SystemsManagerService {
     const separator = this.config.pathSeparator || '.';
 
     // Remove base path and leading/trailing slashes using string operations
-    let relativePath = fullPath.replace(basePath, '');
-    
-    // Remove leading slashes
-    let start = 0;
-    while (start < relativePath.length && relativePath[start] === '/') {
-      start++;
+    const pathWithoutBase = fullPath.replace(basePath, '');
+
+    // Find first non-slash character
+    let startIndex = 0;
+    while (
+      startIndex < pathWithoutBase.length &&
+      pathWithoutBase[startIndex] === '/'
+    ) {
+      startIndex++;
     }
-    
-    // Remove trailing slashes
-    let end = relativePath.length;
-    while (end > start && relativePath[end - 1] === '/') {
-      end--;
+
+    // Find last non-slash character
+    let endIndex = pathWithoutBase.length;
+    while (endIndex > startIndex && pathWithoutBase[endIndex - 1] === '/') {
+      endIndex--;
     }
-    
-    relativePath = relativePath.slice(start, end);
+
+    const relativePath = pathWithoutBase.slice(startIndex, endIndex);
 
     // Convert slashes to separator
     return relativePath.split('/').filter(Boolean).join(separator);
