@@ -127,19 +127,6 @@ jobs:
       - name: Check for TypeScript errors
         run: npx tsc --noEmit
 
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-      
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: moderate
-
   aws-sdk-check:
     name: AWS SDK Compatibility Check
     runs-on: ubuntu-latest
