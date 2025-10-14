@@ -1,6 +1,6 @@
 # CodeQL Security Analysis for TypeScript/NestJS Project
 # Scans code for security vulnerabilities and coding errors
-name: "CodeQL Security Analysis"
+name: "Security Scan"
 on:
   push:
     branches: [ main, develop ]
