@@ -1,6 +1,6 @@
 # @nestjs-aws/systems-manager
 
-A powerful NestJS module for seamless integration with AWS Systems Manager Parameter Store and AWS Secrets Manager. Fetch and manage your application configuration and secrets with ease.
+A powerful NestJS module for seamless integration with AWS Systems Manager Parameter Store and AWS Secrets Manager.
 
 [![NPM Publish](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/main.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/main.yml)
 [![PR Build CI](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/pull-request.yml/badge.svg)](https://github.com/typical-organization/nestjs-aws-systems-manager/actions/workflows/pull-request.yml)
@@ -10,17 +10,28 @@ A powerful NestJS module for seamless integration with AWS Systems Manager Param
 [![npm downloads](https://img.shields.io/npm/dm/@nestjs-aws/systems-manager)](https://www.npmjs.com/package/@nestjs-aws/systems-manager)
 [![License](https://img.shields.io/github/license/typical-organization/nestjs-aws-systems-manager)](https://github.com/typical-organization/nestjs-aws-systems-manager/blob/main/LICENSE.md)
 
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+- [Usage Examples](#usage-examples)
+- [IAM Permissions](#iam-permissions)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
 ## Features
 
-✨ **Dual Integration**: Support for both AWS Parameter Store and Secrets Manager  
-🔄 **Auto Refresh**: Runtime parameter and secret refresh capability  
-🔐 **Secure by Default**: Automatic decryption of SecureString parameters  
-📦 **Pagination Support**: Handles large parameter sets automatically  
-🌲 **Hierarchical Keys**: Optional preservation of parameter path hierarchy  
-⚡ **Fast Access**: In-memory caching for lightning-fast runtime access  
-🛡️ **Type Safe**: Full TypeScript support with comprehensive type definitions  
-🎯 **Flexible Configuration**: Static and async (ConfigService) registration options  
-📝 **Smart Logging**: Configurable logging with automatic masking of sensitive values  
+- ✨ **Dual Integration** - Support for both AWS Parameter Store and Secrets Manager
+- 🔄 **Auto Refresh** - Runtime parameter and secret refresh capability
+- 🔐 **Secure by Default** - Automatic decryption of SecureString parameters
+- 📦 **Pagination Support** - Handles large parameter sets automatically
+- 🌲 **Hierarchical Keys** - Optional preservation of parameter path hierarchy
+- ⚡ **Fast Access** - In-memory caching for lightning-fast runtime access
+- 🛡️ **Type Safe** - Full TypeScript support with comprehensive type definitions
 
 ## Installation
 
@@ -30,15 +41,13 @@ npm install @nestjs-aws/systems-manager
 
 ### Peer Dependencies
 
-Install the required AWS SDK packages and NestJS dependencies:
-
 ```bash
 npm install @aws-sdk/client-ssm @aws-sdk/client-secrets-manager @nestjs/common @nestjs/config
 ```
 
 ## Quick Start
 
-### Basic Setup (Static Configuration)
+### Basic Setup
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -66,7 +75,7 @@ import { SystemsManagerService } from '@nestjs-aws/systems-manager';
 export class AppService {
   constructor(private readonly systemsManager: SystemsManagerService) {}
 
-  getDatabaseConfig() {
+  getConfig() {
     const host = this.systemsManager.get('database-host');
     const port = this.systemsManager.getAsNumber('database-port');
     const password = this.systemsManager.getSecret('db-password');
@@ -76,11 +85,9 @@ export class AppService {
 }
 ```
 
-## Configuration Options
+## Configuration
 
 ### Static Registration
-
-Use `register()` for static configuration:
 
 ```typescript
 SystemsManagerModule.register({
@@ -89,15 +96,12 @@ SystemsManagerModule.register({
   awsParamStoreContinueOnError: false,
   preserveHierarchy: true,
   pathSeparator: '.',
-  enableParameterLogging: false,
   useSecretsManager: true,
   secretsManagerSecretNames: ['prod/db/credentials', 'prod/api/keys'],
 })
 ```
 
 ### Async Registration with ConfigService
-
-Use `registerAsync()` for environment-based configuration:
 
 ```typescript
 import { ConfigModule } from '@nestjs/config';
@@ -114,21 +118,19 @@ import { ConfigModule } from '@nestjs/config';
 export class AppModule {}
 ```
 
-**Required environment variables:**
+**Environment variables:**
 
 ```env
-# .env file
 param-store.awsRegion=us-east-1
 param-store.awsParamStorePath=/app/config
 param-store.awsParamStoreContinueOnError=false
 param-store.preserveHierarchy=true
 param-store.pathSeparator=.
-param-store.enableParameterLogging=false
 param-store.useSecretsManager=true
 param-store.secretsManagerSecretNames=prod/db/credentials,prod/api/keys
 ```
 
-## Configuration Properties
+### Configuration Properties
 
 | Property | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
@@ -145,97 +147,66 @@ param-store.secretsManagerSecretNames=prod/db/credentials,prod/api/keys
 
 ### SystemsManagerService
 
-The main service for accessing parameters and secrets.
-
-#### Parameter Store Methods
+#### Basic Methods
 
 ```typescript
-// Get parameter value
-get(key: string): string
-
-// Get parameter only (not secrets)
-getParameter(key: string): string
-
-// Get with type conversion
-getAsNumber(key: string): number
-getAsBoolean(key: string): boolean
-getAsJSON<T>(key: string): T
-
-// Get with default fallback
-getOrDefault(key: string, defaultValue: string): string
-
-// Check if parameter exists
-has(key: string): boolean
-hasParameter(key: string): boolean
-
-// Get all parameters
-getAllParameters(): Record<string, string>
-getAllParameterKeys(): string[]
+get(key: string): string                           // Get from either store
+getParameter(key: string): string                  // Get from Parameter Store
+getSecret(key: string): string                     // Get from Secrets Manager
+getOrDefault(key: string, default: string): string // Get with fallback
 ```
 
-#### Secrets Manager Methods
+#### Type Conversion Methods
 
 ```typescript
-// Get secret value
-getSecret(key: string): string
-
-// Check if secret exists
-hasSecret(key: string): boolean
-
-// Get all secrets
-getAllSecrets(): Record<string, string>
-getAllSecretKeys(): string[]
+getAsNumber(key: string): number      // Convert to number
+getAsBoolean(key: string): boolean    // Convert to boolean
+getAsJSON<T>(key: string): T          // Parse as JSON
 ```
 
-#### Combined Methods
+#### Check Methods
 
 ```typescript
-// Get from either store (parameters checked first)
-get(key: string): string
-has(key: string): boolean
+has(key: string): boolean          // Check either store
+hasParameter(key: string): boolean // Check Parameter Store
+hasSecret(key: string): boolean    // Check Secrets Manager
+```
 
-// Get all values from both stores
-getAll(): Record<string, string>
-getAllKeys(): string[]
+#### Bulk Methods
+
+```typescript
+getAll(): Record<string, string>              // Get all values
+getAllParameters(): Record<string, string>    // Get all parameters
+getAllSecrets(): Record<string, string>       // Get all secrets
+getAllKeys(): string[]                        // Get all keys
 ```
 
 #### Refresh Methods
 
 ```typescript
-// Refresh both parameters and secrets
-await refresh(): Promise<void>
-
-// Refresh only parameters
-await refreshParameters(): Promise<void>
-
-// Refresh only secrets
-await refreshSecrets(): Promise<void>
+await refresh(): Promise<void>           // Refresh both stores
+await refreshParameters(): Promise<void> // Refresh parameters only
+await refreshSecrets(): Promise<void>    // Refresh secrets only
 ```
 
 ## Usage Examples
 
-### Basic Parameter Access
+### Basic Access
 
 ```typescript
-// Flat mode (default)
-// Parameter: /app/config/api-key
+// Flat mode (default) - Parameter: /app/config/api-key
 const apiKey = this.systemsManager.get('api-key');
 
-// Hierarchical mode (preserveHierarchy: true)
-// Parameter: /app/config/database/host
+// Hierarchical mode - Parameter: /app/config/database/host
 const dbHost = this.systemsManager.get('database.host');
 ```
 
 ### Type Conversions
 
 ```typescript
-// Number
-const port = this.systemsManager.getAsNumber('port'); // 3000
+const port = this.systemsManager.getAsNumber('port');
+const debugMode = this.systemsManager.getAsBoolean('debug-enabled');
 
-// Boolean
-const debugMode = this.systemsManager.getAsBoolean('debug-enabled'); // true
-
-// JSON
 interface Config {
   timeout: number;
   retries: number;
@@ -246,10 +217,8 @@ const config = this.systemsManager.getAsJSON<Config>('app-config');
 ### Working with Secrets
 
 ```typescript
-// Fetch secret from Secrets Manager
 const dbPassword = this.systemsManager.getSecret('database-password');
 
-// Check if secret exists
 if (this.systemsManager.hasSecret('api-key')) {
   const key = this.systemsManager.getSecret('api-key');
 }
@@ -260,68 +229,40 @@ if (this.systemsManager.hasSecret('api-key')) {
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { SystemsManagerService } from '@nestjs-aws/systems-manager';
 
 @Injectable()
 export class ConfigRefreshService {
   constructor(private readonly systemsManager: SystemsManagerService) {}
 
-  @Cron('0 */5 * * * *') // Every 5 minutes
+  @Cron('0 */5 * * * *')
   async refreshConfig() {
     await this.systemsManager.refresh();
-    console.log('Configuration refreshed');
   }
 }
 ```
 
 ### Hierarchical Parameters
 
-When `preserveHierarchy` is enabled, parameters maintain their path structure:
-
 ```typescript
 // AWS Parameter Store structure:
 // /app/config/database/host
 // /app/config/database/port
-// /app/config/api/endpoint
-// /app/config/api/timeout
 
 SystemsManagerModule.register({
   awsRegion: 'us-east-1',
   awsParamStorePath: '/app/config',
   preserveHierarchy: true,
-  pathSeparator: '.', // or '/', '_', etc.
+  pathSeparator: '.',
 })
 
 // Access with dot notation
 const dbHost = this.systemsManager.get('database.host');
 const dbPort = this.systemsManager.get('database.port');
-const apiEndpoint = this.systemsManager.get('api.endpoint');
 ```
 
-### Error Handling
+## IAM Permissions
 
-```typescript
-SystemsManagerModule.register({
-  awsRegion: 'us-east-1',
-  awsParamStorePath: '/app/config',
-  awsParamStoreContinueOnError: false, // Fail fast (recommended for production)
-})
-
-// Or continue on error (not recommended for production)
-SystemsManagerModule.register({
-  awsRegion: 'us-east-1',
-  awsParamStorePath: '/app/config',
-  awsParamStoreContinueOnError: true, // Log warning and continue
-})
-```
-
-## AWS IAM Permissions
-
-Your application needs appropriate IAM permissions to access Parameter Store and Secrets Manager.
-
-### Minimum Required Permissions
-
-#### For Parameter Store Only:
+### Parameter Store
 
 ```json
 {
@@ -338,16 +279,14 @@ Your application needs appropriate IAM permissions to access Parameter Store and
     },
     {
       "Effect": "Allow",
-      "Action": [
-        "kms:Decrypt"
-      ],
+      "Action": ["kms:Decrypt"],
       "Resource": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID"
     }
   ]
 }
 ```
 
-#### For Secrets Manager:
+### Secrets Manager
 
 ```json
 {
@@ -355,9 +294,7 @@ Your application needs appropriate IAM permissions to access Parameter Store and
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "secretsmanager:GetSecretValue"
-      ],
+      "Action": ["secretsmanager:GetSecretValue"],
       "Resource": [
         "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:prod/db/credentials-*",
         "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:prod/api/keys-*"
@@ -369,80 +306,31 @@ Your application needs appropriate IAM permissions to access Parameter Store and
 
 ## Best Practices
 
-### 1. **Use Secrets Manager for Sensitive Data**
-
-```typescript
-// Store database passwords, API keys in Secrets Manager
-SystemsManagerModule.register({
-  awsRegion: 'us-east-1',
-  awsParamStorePath: '/app/config',
-  useSecretsManager: true,
-  secretsManagerSecretNames: ['prod/database/password', 'prod/api/key'],
-})
-```
-
-### 2. **Organize Parameters Hierarchically**
-
-```
-/production/app/database/host
-/production/app/database/port
-/production/app/api/endpoint
-/production/app/api/timeout
-```
-
-### 3. **Use Environment-Specific Paths**
-
-```typescript
-const environment = process.env.NODE_ENV || 'development';
-const paramPath = `/${environment}/app/config`;
-
-SystemsManagerModule.register({
-  awsRegion: 'us-east-1',
-  awsParamStorePath: paramPath,
-  awsParamStoreContinueOnError: false,
-})
-```
-
-### 4. **Enable Logging in Development Only**
-
-```typescript
-SystemsManagerModule.register({
-  awsRegion: 'us-east-1',
-  awsParamStorePath: '/app/config',
-  enableParameterLogging: process.env.NODE_ENV === 'development',
-})
-```
-
-### 5. **Implement Graceful Refresh**
-
-```typescript
-try {
-  await this.systemsManager.refresh();
-} catch (error) {
-  console.error('Failed to refresh configuration:', error);
-  // Continue with cached values
-}
-```
+1. **Use Secrets Manager for Sensitive Data** - Store passwords, API keys in Secrets Manager
+2. **Organize Parameters Hierarchically** - Use structured paths like `/production/app/database/host`
+3. **Use Environment-Specific Paths** - Separate configs per environment: `/dev/app`, `/prod/app`
+4. **Enable Logging in Development Only** - Set `enableParameterLogging: true` only in dev
+5. **Fail Fast in Production** - Set `awsParamStoreContinueOnError: false` for production
 
 ## Troubleshooting
 
 ### Parameters Not Loading
 
-1. **Check IAM Permissions**: Ensure your IAM role has `ssm:GetParametersByPath` permission
-2. **Verify Region**: Make sure the AWS region matches where your parameters are stored
-3. **Check Path**: Parameter path must start with `/` and exist in Parameter Store
-4. **Enable Logging**: Set `enableParameterLogging: true` to see detailed debug logs
+- Check IAM permissions (`ssm:GetParametersByPath`)
+- Verify AWS region matches where parameters are stored
+- Ensure path starts with `/` and exists in Parameter Store
+- Enable `enableParameterLogging: true` for debug logs
 
 ### Secrets Not Loading
 
-1. **Check IAM Permissions**: Ensure `secretsmanager:GetSecretValue` permission
-2. **Verify Secret Names**: Secret names must exactly match those in Secrets Manager
-3. **Enable Secrets Manager**: Set `useSecretsManager: true`
-4. **Check Array Format**: For ConfigService, use comma-separated values in .env
+- Check IAM permissions (`secretsmanager:GetSecretValue`)
+- Verify secret names exactly match those in Secrets Manager
+- Ensure `useSecretsManager: true` is set
+- For ConfigService, use comma-separated values in .env
 
 ### DecryptionFailure Error
 
-This error occurs when your IAM role lacks KMS decrypt permissions for SecureString parameters:
+Add KMS decrypt permissions:
 
 ```json
 {
@@ -454,34 +342,25 @@ This error occurs when your IAM role lacks KMS decrypt permissions for SecureStr
 
 ## Requirements
 
-- **Node.js**: >= 20.0.0
-- **NPM**: >= 9.0.0
-- **NestJS**: >= 11.0.0
-- **AWS SDK**: >= 3.0.0
+- Node.js >= 20.0.0
+- NPM >= 9.0.0
+- NestJS >= 11.0.0
+- AWS SDK >= 3.0.0
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+MIT License - see [LICENSE.md](LICENSE.md) for details.
 
 ## Support
 
 - 📖 [Documentation](https://github.com/typical-organization/nestjs-aws-systems-manager)
 - 🐛 [Issue Tracker](https://github.com/typical-organization/nestjs-aws-systems-manager/issues)
-- 💬 [Discussions](https://github.com/typical-organization/nestjs-aws-systems-manager/discussions)
 
-## Author
-
-**Parik Maan**
+**Author:** Parik Maan
 
 ---
 
