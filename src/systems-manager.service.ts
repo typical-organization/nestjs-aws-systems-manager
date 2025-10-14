@@ -135,7 +135,8 @@ export class SystemsManagerService {
     // Remove base path and leading/trailing slashes
     const relativePath = fullPath
       .replace(basePath, '')
-      .replace(/^\/+|\/+$/g, '');
+      .replace(/^\/+/, '')
+      .replace(/\/+$/, '');
 
     // Convert slashes to separator
     return relativePath.split('/').filter(Boolean).join(separator);
