@@ -1,8 +1,8 @@
-name: Publish to NPM
+name: NPM Publish
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   publish:
@@ -87,14 +87,30 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           
-          # Wait for NPM registry to update
-          echo "⏳ Waiting 30 seconds for NPM registry to update..."
-          sleep 30
+          # Wait for NPM registry to update (increased from 30s to 2 minutes)
+          echo "⏳ Waiting for NPM registry to update..."
           
-          # Verify package is available
-          if npm view $PACKAGE_NAME@$PACKAGE_VERSION > /dev/null 2>&1; then
-            echo "✅ Package successfully published and available on NPM"
-          else
-            echo "❌ Package not found on NPM registry"
-            exit 1
-          fi
+          # Retry up to 6 times with 20 second intervals (total 2 minutes)
+          MAX_RETRIES=6
+          RETRY_INTERVAL=20
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "🔍 Attempt $RETRY_COUNT of $MAX_RETRIES..."
+            
+            if npm view $PACKAGE_NAME@$PACKAGE_VERSION > /dev/null 2>&1; then
+              echo "✅ Package successfully published and available on NPM"
+              exit 0
+            fi
+            
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "⏳ Package not yet available, waiting ${RETRY_INTERVAL}s before retry..."
+              sleep $RETRY_INTERVAL
+            fi
+          done
+          
+          echo "❌ Package not found on NPM registry after $((MAX_RETRIES * RETRY_INTERVAL)) seconds"
+          echo "ℹ️  This might be a temporary registry delay. Check manually at:"
+          echo "   https://www.npmjs.com/package/$PACKAGE_NAME"
+          exit 1

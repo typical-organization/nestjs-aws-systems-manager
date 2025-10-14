@@ -1,4 +1,4 @@
-name: Node.js EOL Check
+name: Node EOL Check
 
 on:
   schedule:
